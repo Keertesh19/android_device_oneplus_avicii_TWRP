@@ -34,13 +34,6 @@ service mount-dynamic-rw /system/bin/mount-dynamic-rw.sh
     oneshot
     seclabel u:r:recovery:s0
 
-service unified-script /system/bin/unified-script.sh
-    user root
-    group root
-    disabled
-    oneshot
-    seclabel u:r:recovery:s0
-
 service make-fake-partitions-service /system/bin/make-fake-partitions-service.sh reserve
     user root
     group root
@@ -61,11 +54,9 @@ on boot
 
     #chmod 0777 /system/bin/mount-dynamic-rw.sh
     #start mount-dynamic-rw
-    chmod 0777 /system/bin/unified-script.sh
     chmod 0777 /system/bin/patchfakepartitions-service.sh
     
     start patchfakepartitions-service
-    start unified-script
     chmod 0777 /system/bin/make-fake-partitions-service.sh
     start make-fake-partitions-service
 
