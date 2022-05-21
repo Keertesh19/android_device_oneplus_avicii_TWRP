@@ -14,12 +14,8 @@
 // limitations under the License.
 //
 
-soong_namespace {
-    imports: ["hardware/qcom/bootctrl"],
-}
-
 cc_library {
     name: "bootctrl.lito",
     defaults: ["bootctrl_hal_defaults"],
-    static_libs: ["libgptutils.oneplusnord"],
+    static_libs: ["libgptutils"],
 }

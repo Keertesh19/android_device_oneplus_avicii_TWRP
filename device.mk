@@ -4,7 +4,8 @@ LOCAL_PATH := device/oneplus/avicii
 # define hardware platform
 PRODUCT_PLATFORM := lito
 
-#TEST
+AB_OTA_UPDATER := true
+
 # A/B support
 PRODUCT_PACKAGES += \
     otapreopt_script \
@@ -29,11 +30,29 @@ PRODUCT_PACKAGES += \
     bootctrl.lito \
     bootctrl.lito.recovery \
 
-PRODUCT_HOST_PACKAGES += \
-    libandroidicu
+TW_LOAD_VENDOR_MODULES := "touchscreen.ko aw8697.ko adsp_loader_dlkm.ko oplus_chg.ko"
+
+# fastbootd
+PRODUCT_PACKAGES += \
+	android.hardware.fastboot@1.0-impl-mock \
+	fastbootd \
+        resetprop
 
 # Soong namespaces
 PRODUCT_SOONG_NAMESPACES += \
     $(LOCAL_PATH)
+
+# tzdata
+PRODUCT_PACKAGES_ENG += \
+	tzdata_twrp
+
+# qcom decryption
+PRODUCT_PACKAGES_ENG += \
+	qcom_decrypt \
+	qcom_decrypt_fbe
+
+# Apex libraries
+PRODUCT_COPY_FILES += \
+	$(OUT_DIR)/target/product/$(PRODUCT_RELEASE_NAME)/obj/SHARED_LIBRARIES/libandroidicu_intermediates/libandroidicu.so:$(TARGET_COPY_OUT_RECOVERY)/root/system/lib64/libandroidicu.so
 
 #PRODUCT_COPY_FILES += $(call find-copy-subdir-files,*,$(LOCAL_PATH)/recovery/root,recovery/root)

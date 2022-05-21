@@ -47,9 +47,22 @@ TARGET_NO_BOOTLOADER := true
 TARGET_USES_UEFI := true
 
 BUILD_BROKEN_DUP_RULES := true
+ALLOW_MISSING_DEPENDENCIES=true
 
 # Kernel
-BOARD_KERNEL_CMDLINE := androidboot.hardware=qcom androidboot.console=ttyMSM0 androidboot.memcg=1 lpm_levels.sleep_disabled=1 video=vfb:640x400,bpp=32,memsize=3072000 msm_rtb.filter=0x237 service_locator.enable=1 swiotlb=2048 firmware_class.path=/vendor/firmware_mnt/image loop.max_part=7 androidboot.usbcontroller=a600000.dwc3 skip_override androidboot.fastboot=1
+BOARD_KERNEL_CMDLINE := \
+	androidboot.hardware=qcom \
+	androidboot.console=ttyMSM0 \
+	androidboot.memcg=1 \
+	lpm_levels.sleep_disabled=1 \
+	video=vfb:640x400,bpp=32,memsize=3072000 \
+	msm_rtb.filter=0x237 \
+	service_locator.enable=1 \
+	swiotlb=2048 \
+	firmware_class.path=/vendor/firmware_mnt/image \
+	androidboot.usbcontroller=a600000.dwc3 \
+	androidboot.selinux=permissive
+
 BOARD_KERNEL_IMAGE_NAME := Image
 BOARD_KERNEL_PAGESIZE := 4096
 BOARD_BOOT_HEADER_VERSION := 2
@@ -64,7 +77,6 @@ TARGET_PREBUILT_DTB := $(LOCAL_PATH)/prebuilt/dtb.img
 TARGET_PREBUILT_KERNEL := $(LOCAL_PATH)/prebuilt/Image.gz
 BOARD_PREBUILT_DTBOIMAGE := $(LOCAL_PATH)/prebuilt/dtbo.img
 BOARD_INCLUDE_RECOVERY_DTBO := true
-BOARD_INCLUDE_DTB_IN_BOOTIMG := true
 BOARD_MKBOOTIMG_ARGS += --base $(BOARD_KERNEL_BASE)
 BOARD_MKBOOTIMG_ARGS += --pagesize $(BOARD_KERNEL_PAGESIZE)
 BOARD_MKBOOTIMG_ARGS += --ramdisk_offset $(BOARD_RAMDISK_OFFSET)
@@ -80,24 +92,26 @@ BOARD_MKBOOTIMG_ARGS += --dtb $(TARGET_PREBUILT_DTB)
 TARGET_BOARD_PLATFORM := lito
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno620
 QCOM_BOARD_PLATFORMS += lito
+TARGET_USES_HARDWARE_QCOM_BOOTCTRL := true
 
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 262144
+BOARD_USES_PRODUCTIMAGE := true
 
 BOARD_BOOTIMAGE_PARTITION_SIZE := 100663296
 BOARD_RECOVERYIMAGE_PARTITION_SIZE := 104857600
-BOARD_SYSTEMIMAGE_PARTITION_SIZE := 3640655872
+#BOARD_SYSTEMIMAGE_PARTITION_SIZE := 3640655872
 BOARD_SYSTEMIMAGE_JOURNAL_SIZE := 0
 BOARD_SYSTEMIMAGE_EXTFS_INODE_COUNT := 4096
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 115601780736
-BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
-BOARD_VENDORIMAGE_PARTITION_SIZE := 1073741824
+#BOARD_USERDATAIMAGE_PARTITION_SIZE := 115601780736
+#BOARD_USERDATAIMAGE_FILE_SYSTEM_TYPE := ext4
+#BOARD_VENDORIMAGE_PARTITION_SIZE := 1073741824
 TARGET_USERIMAGES_USE_EXT4 := true
 TARGET_USERIMAGES_USE_F2FS := true
 #BOARD_PRODUCTIMAGE_FILE_SYSTEM_TYPE := ext4
 #BOARD_ODMIMAGE_FILE_SYSTEM_TYPE := ext4
 
-#super
+# Dynamic/Logical Partitions
 #PRODUCT_USE_DYNAMIC_PARTITIONS := true
 #PRODUCT_BUILD_SUPER_PARTITION := true
 BOARD_SUPER_PARTITION_SIZE := 15032385536
@@ -112,7 +126,7 @@ BOARD_QTI_DYNAMIC_PARTITIONS_PARTITION_LIST := \
 TARGET_NO_KERNEL := false
 TARGET_NO_RECOVERY := false
 #BOARD_USES_RECOVERY_AS_BOOT := true
-BOARD_BUILD_SYSTEM_ROOT_IMAGE := true
+BOARD_BUILD_SYSTEM_ROOT_IMAGE := false
 
 # Partitions (listed in the file) to be wiped under recovery.
 TARGET_RECOVERY_WIPE := $(LOCAL_PATH)/recovery.wipe
@@ -125,6 +139,16 @@ TARGET_COPY_OUT_VENDOR := vendor
 # Recovery
 BOARD_HAS_LARGE_FILESYSTEM := true
 BOARD_HAS_NO_SELECT_BUTTON := true
+TARGET_RECOVERY_DEVICE_MODULES += \
+	android.hidl.base@1.0 \
+	ashmemd \
+	ashmemd_aidl_interface-cpp \
+	bootctrl.$(TARGET_BOARD_PLATFORM).recovery \
+	libashmemd_client \
+	libcap \
+	libion \
+	libpcrecpp \
+	libxml2
 
 # TWRP specific build flags
 BOARD_HAS_NO_REAL_SDCARD := true
@@ -147,6 +171,21 @@ TARGET_USE_CUSTOM_LUN_FILE_PATH := /config/usb_gadget/g1/functions/mass_storage.
 TARGET_RECOVERY_PIXEL_FORMAT := BGRA_8888
 TW_NO_SCREEN_BLANK := true
 TW_USE_TOOLBOX := true
+TW_EXCLUDE_ENCRYPTED_BACKUPS := true
+TW_EXCLUDE_TWRPAPP := true
+TW_NO_BIND_SYSTEM := true
+TW_NO_EXFAT_FUSE := true
+TW_SYSTEM_BUILD_PROP_ADDITIONAL_PATHS := etc/buildinfo/oem_build.prop
+TW_RECOVERY_ADDITIONAL_RELINK_BINARY_FILES += \
+    $(TARGET_OUT_EXECUTABLES)/ashmemd
+TW_RECOVERY_ADDITIONAL_RELINK_LIBRARY_FILES += \
+    $(TARGET_OUT_SHARED_LIBRARIES)/android.hidl.base@1.0.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/ashmemd_aidl_interface-cpp.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libashmemd_client.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libcap.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libion.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libpcrecpp.so \
+    $(TARGET_OUT_SHARED_LIBRARIES)/libxml2.so
 
 # Use mke2fs to create ext4 images
 TARGET_USES_MKE2FS := true
@@ -159,22 +198,27 @@ AB_OTA_PARTITIONS += \
     system \
     vendor \
     vbmeta \
-    dtbo 
+    dtbo
 
 # tell update_engine to not change dynamic partition table during updates
 # needed since our qti_dynamic_partitions does not include
 # vendor and odm and we also dont want to AB update them
-TARGET_ENFORCE_AB_OTA_PARTITION_LIST := true
+#TARGET_ENFORCE_AB_OTA_PARTITION_LIST := true
 
 # Encryption
 PLATFORM_SECURITY_PATCH := 2099-12-31
 VENDOR_SECURITY_PATCH := 2099-12-31
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_CRYPTO_FBE := true
+TW_USE_FSCRYPT_POLICY := 1
 TW_INCLUDE_FBE_METADATA_DECRYPT := true
 BOARD_USES_METADATA_PARTITION := true
+BOARD_USES_QCOM_FBE_DECRYPTION := true
+PRODUCT_ENFORCE_VINTF_MANIFEST := true
 
 # Extras
+TARGET_SYSTEM_PROP += $(DEVICE_PATH)/system.prop
+TW_INCLUDE_RESETPROP := true
 BOARD_PROVIDES_GPTUTILS := true
 BOARD_SUPPRESS_SECURE_ERASE := true
 TW_USE_LEDS_HAPTICS := true
@@ -184,5 +228,5 @@ TW_HAS_EDL_MODE := true
 TWRP_INCLUDE_LOGCAT := true
 TARGET_USES_LOGD := true
 TW_NO_USB_STORAGE := true
-PLATFORM_VERSION := 16.1.0
-#TW_OVERRIDE_SYSTEM_PROPS := "ro.build.version.security_patch;ro.vendor.build.security_patch;ro.build.version.release"
+PLATFORM_VERSION := 20.1.0
+TW_OVERRIDE_SYSTEM_PROPS := "ro.build.fingerprint=ro.system.build.fingerprint;ro.build.version.incremental;ro.build.version.ota"
