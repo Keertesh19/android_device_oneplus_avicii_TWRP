@@ -1,6 +1,8 @@
 
 LOCAL_PATH := device/oneplus/avicii
 
+PRODUCT_USE_DYNAMIC_PARTITIONS := true
+
 # define hardware platform
 PRODUCT_PLATFORM := lito
 
