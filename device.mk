@@ -3,6 +3,9 @@ LOCAL_PATH := device/oneplus/avicii
 
 PRODUCT_USE_DYNAMIC_PARTITIONS := true
 
+PRODUCT_SHIPPING_API_LEVEL := 30
+PRODUCT_TARGET_VNDK_VERSION := 30
+
 # define hardware platform
 PRODUCT_PLATFORM := lito
 
@@ -49,12 +52,8 @@ PRODUCT_PACKAGES_ENG += \
 	tzdata_twrp
 
 # qcom decryption
-PRODUCT_PACKAGES_ENG += \
+PRODUCT_PACKAGES += \
 	qcom_decrypt \
 	qcom_decrypt_fbe
-
-# Apex libraries
-PRODUCT_COPY_FILES += \
-	$(OUT_DIR)/target/product/$(PRODUCT_RELEASE_NAME)/obj/SHARED_LIBRARIES/libandroidicu_intermediates/libandroidicu.so:$(TARGET_COPY_OUT_RECOVERY)/root/system/lib64/libandroidicu.so
 
 #PRODUCT_COPY_FILES += $(call find-copy-subdir-files,*,$(LOCAL_PATH)/recovery/root,recovery/root)
